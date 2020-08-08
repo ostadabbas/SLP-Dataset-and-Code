@@ -1,0 +1,17 @@
+#!/bin/bash
+##SBATCH --exclusive
+#SBATCH --job-name=RESpose
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=5
+#SBATCH --partition=multigpu
+#SBATCH --gres=gpu:v100-sxm2:1	 # resource
+#SBATCH --mem=128Gb
+#SBATCH --time=24:00:00
+#SBATCH --output=bch_outs/RESpose.%j.out
+#SBATCH --error=bch_outs/RESpose.%j.err
+echo python s_pose2d --modelConf config/RESpose.conf --mod_src ${1}
+source activate pch1.5
+python s_pose2d.py --modelConf config/RESpose.conf --mod_src ${1}
+# --modelConf config/HRpose.conf \
+# --display_id 1 \
+#--sz_pch 256 256 \

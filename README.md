@@ -16,4 +16,30 @@ torchvision
 
 scikit-image
 
+scipy
 
+visdom
+
+jsonpatch(visdom need it)
+
+dominate (if using visualizer, otherwise commented it out)
+
+## file structure 
+
+    trainNm/	module_dump: save weights 
+
+		log:	record training loss and test loss  separately, we can only check test 
+		
+		result:	test result of the metrics, predictions (json, npy) 
+		
+		vis:	the visualization result 
+		
+			division(test, train)/	/testSet	/2d
+			
+							/3d
+							
+					        /hist		
+					
+							…
+							
+		web: 	display on server 

@@ -1,6 +1,6 @@
 import torch.nn as nn
 from torch.nn import init
-from . import resnet_1c as resnet     # changed to 1 channel
+from . import resnet_A2J as resnet     # changed to 1 channel
 
 class DepthRegressionModel(nn.Module):
     def __init__(self, num_features_in, num_anchors=16, num_classes=15, feature_size=256):
@@ -155,7 +155,7 @@ class ResNetBackBone(nn.Module):
         x = x[:,0:1,:,:]  # depth
         x = x.expand(n,3,h,w)       #  make to 3 channels
 
-        x = self.model.conv1(x)
+        x = self.model.conv1(x)      # all netws then few layers out.
         x = self.model.bn1(x)
         x = self.model.relu(x)
         x = self.model.maxpool(x)

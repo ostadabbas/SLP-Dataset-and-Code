@@ -1,0 +1,18 @@
+#!/bin/bash
+##SBATCH --exclusive
+#SBATCH --job-name=MPPE3D_SLP
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=5
+#SBATCH --partition=multigpu
+#SBATCH --gres=gpu:v100-sxm2:1	 # resource
+#SBATCH --mem=128Gb
+#SBATCH --time=24:00:00
+#SBATCH --output=bch_outs/MPPE3D_SLP.%j.out
+#SBATCH --error=bch_outs/MPPE3D_SLP.%j.err
+source activate py36
+python s_MPPE3D.py \
+--sz_pch 256 256 \
+--trainset H36M \
+--prep MPPE3D \
+--model MPPE3D \
+--testIter -1

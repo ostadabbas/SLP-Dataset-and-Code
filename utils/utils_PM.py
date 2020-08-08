@@ -551,6 +551,7 @@ def drawPCSv2(rst_li, legend_li, pltNm, rstRt='./results', rgSt= 0, rgTo=0.1, st
     # plt.show()
     plt.clf()
 
+# grid and gallery can be kept in general utils
 def drawGrid(nmLs, idxLs, mod=0, rstFd = 'results', name='base', if_gray = True, if_show = False, subNm = '', dpi = 300):
     '''
     draw the grid pictures from given model with fake colors.  nModel x n_images.  Different mod to draw different combination.
@@ -750,30 +751,4 @@ def gallery(array, ncols=3):
     return result
 
 
-def genPTr_dict(subj_li, mod_li, dsFd=r'G:\My Drive\ACLab Shared GDrive\datasetPM\danaLab'):
-    '''
-    loop idx_li, loop mod_li then generate dictionary {mod[0]:PTr_li[...], mod[1]:PTr_li[...]}
-    :param subj_li:
-    :param mod_li:
-    :return:
-    '''
-    PTr_dct_li_src = {}  # a dict
-    for modNm in mod_li:  # initialize the dict_li
-        if not 'PM' in modNm:  # all PM immue
-            PTr_dct_li_src[modNm] = []  # make empty list  {md:[], md2:[]...}
-    for i in subj_li:
-        for mod in mod_li:  # add mod PTr
-            if not 'PM' in mod:  # not PTr for 'PM'
-                if 'IR' in mod:
-                    nm_mod_PTr = 'IR'
-                elif 'depth' in mod:
-                    nm_mod_PTr = 'depth'
-                elif 'RGB' in mod:
-                    nm_mod_PTr = 'RGB'
-                else:
-                    print('no such modality', mod)
-                    exit(-1)
-                pth_PTr = os.path.join(dsFd, '{:05d}'.format(i + 1), 'align_PTr_{}.npy'.format(nm_mod_PTr))
-                PTr = np.load(pth_PTr)
-                PTr_dct_li_src[mod].append(PTr)
-    return PTr_dct_li_src
+
