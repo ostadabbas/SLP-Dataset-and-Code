@@ -83,17 +83,6 @@ def affineImg(img, scale=1,deg=0,  shf=(0,0)):
     img_new = transform.warp(img, tsfm, preserve_range=True)
     return img_new
 
-def getPSE(abs_diff, PCS):
-    '''
-    calculate the percentage of correct estimation
-    :param abs_diff:
-    :param PSE:
-    :return:
-    '''
-    n_cor = (abs_diff<PCS).sum()
-    acc = n_cor/abs_diff.numel()
-    return acc
-
 def getDiff(model, dataset, num_test):
     '''
     from the testing set, get all diff and real matrix for accuracy test
@@ -123,22 +112,34 @@ def getDiff(model, dataset, num_test):
     real_bStk = np.concatenate(real_li)
     return diff_bStk, real_bStk
 
-def ts2Img(ts_bch, R=1):
+def ts2Img(ts_bch, R=1, nm_cm=None, if_bch=True):
     '''
     take first tensor from tensor bach and save it to image format, io will deal will the differences across domain
     :param ts_bch: direct output from model
     :return: the image format with axis changed ( I think io can save different range directly, so not handle here), suppose to be 3 dim one.
     '''
-    image_numpy = ts_bch[0].cpu().float().numpy()
+    if if_bch:
+        ts = ts_bch[0]
+    else:
+        ts = ts_bch
+    image_numpy = ts.data.cpu().float().numpy()
     if 1 == R:
         image_numpy = image_numpy.clip(0, 1)
     elif 2 == R:  # suppose to be clip11,  -1 to 1   make this also to 0, 1 version
         # image_numpy = image_numpy.clip(-1, 1)
-        image_numpy = ((image_numpy+1)/2).clip(0, 1)
-    else:  # suppose to be uint8 0 ~ 255
+        image_numpy = ((image_numpy + 1) / 2).clip(0, 1)
+    else:  # otherwise suppose to be uint8 0 ~ 255
         image_numpy = image_numpy.clip(0, 255)
     if image_numpy.shape[0] == 1:  # grayscale to RGB
-        image_numpy = np.tile(image_numpy, (3, 1, 1))   # make to RGB format
+        if nm_cm:
+            cm = plt.get_cmap(nm_cm)
+            image_numpy = cm(image_numpy.transpose([1, 2, 0]))  # 1 x 255 x 4
+            # print('after trans', image_numpy.shape)
+            image_numpy = image_numpy.squeeze()[..., :3]  # only 3 channels.
+            # print('image cut 3 channel', image_numpy.shape)
+            image_numpy = image_numpy.transpose([2, 0, 1])
+        else:
+            image_numpy = np.tile(image_numpy, (3, 1, 1))  # make to RGB format
     image_numpy = np.transpose(image_numpy, (1, 2, 0))
     return image_numpy  # default float
 
@@ -165,16 +166,9 @@ def getDiff_img(model, dataset, num_test, web_dir, if_saveImg=False, num_imgSv= 
             break
         model.set_input(data)  # unpack data from data loader
         model.test()  # run forward and compute visual
-        # img_path = model.get_image_paths()        # save the trouble just use demo
-        # short_path = ntpath.basename(img_path[0])
-        # name = os.path.splitext(short_path)[0]
         if 0 == i % 100:
             print('{} samples processed'.format(i))
 
-        # currently only work for one channel, multiple channel not set yet.  maybe to 3 channels.
-        # real_A_im = model.real_A.squeeze().cpu().numpy()
-        # real_B_im = model.real_B.squeeze().cpu().numpy()
-        # fake_B_im = model.fake_B.squeeze().cpu().numpy()
         real_A_im = ts2Img(model.real_A)
         real_B_im = ts2Img(model.real_B)
         fake_B_im = ts2Img(model.fake_B)
