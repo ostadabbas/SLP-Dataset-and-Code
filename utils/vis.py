@@ -5,22 +5,15 @@ import os
 import os.path as osp
 import cv2
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 import sys
 import ntpath
-import time
-# from . import utils_tool, html
 from subprocess import Popen, PIPE
-# from scipy.misc import imresize
 from skimage.transform import resize  # misc deprecated e
 from skimage import io, transform, img_as_ubyte
 from .utils import make_folder
 from . import utils as utils_tool
 import plotly.graph_objects as go
-from PIL import Image
-import math
 
 
 def vis_keypoints(img, kps, kps_lines, kp_thresh=0.4, alpha=1):
@@ -519,26 +512,13 @@ def vis_IR_D_PM(D, IR, PM, bb=[160, 80, 180, 340], PM_max=100, d_PM=500, opacity
 		# plot_bgcolor='white',        # not working
 		# paper_bgcolor='white'
 	)  # x, y, z are r, c, z direction
-	# print('before to image')
-	# problem on AR?
-	# print('before to image')
-	# img_bytes = fig.to_image(format='png')      # still error
-	# # print('after to image')
-	# print('after to image')
-	# arr_frs = np.fromstring(img_bytes, np.uint8)
-	# img_cv2 = cv2.imdecode(arr_frs, cv2.IMREAD_COLOR)
 
 	if pth is None:
 		fig.show()
 	elif pth.endswith('.json'):
 		fig.write_json(pth)
 	else:
-		# print('before cv2 write')
-		# cv2.imwrite(pth, img_cv2)
 		fig.write_image(pth)  # orac version not working on cluster, use cv2
-
-
-# return img_cv2      # return the cv2 image .
 
 
 def hconcat_resize(im_list, if_maxh=True, interpolation=cv2.INTER_CUBIC):
@@ -611,7 +591,6 @@ def genPCK(li_mat, ticks, nms_mth, nms_jt, outFd='output/pcks', svNm='pcks.pdf',
 	n_jt =len(nms_jt)
 	assert layout[0]*layout[1] >= matShp[0], 'layout should have more plots than methods'
 	assert matShp[1] == len(ticks), 'ticks {} should have same number as the input mat {}'.format_map(len(ticks), matShp[1])
-	# ncol = math.ceil(len(nms_mth)/2)        # take ceil if odd
 	ncol = len(nms_mth)       # take ceil if odd
 	if layout == [1, 1]:
 		fig, axes = plt.subplots(figsiz=(12, 12))  # single one
@@ -625,7 +604,6 @@ def genPCK(li_mat, ticks, nms_mth, nms_jt, outFd='output/pcks', svNm='pcks.pdf',
 	for i in range(n_jt):      # loop all jt/subplots
 		ax = axes[i]
 		ax.set_title(nms_jt[i], fontdict=font2)
-		# loop method, then plot
 		for j, mat_t in enumerate(li_mat):        # j mth, i jt
 			if i == n_jt - 1:  # if last
 				ax.plot(ticks, mat_t[i], label = nms_mth[j], linewidth=3)
@@ -646,6 +624,5 @@ def genPCK(li_mat, ticks, nms_mth, nms_jt, outFd='output/pcks', svNm='pcks.pdf',
 	                    )
 	if if_show:
 		plt.show()
-	# fig.savefig('samplefigure', bbox_extra_artists=(lgd,), bbox_inches='tight')
 	fig.savefig(pth_sv, bbox_extra_artists=(lgd,), bbox_inches='tight')
 	print('pck saved at {}'.format(pth_sv))

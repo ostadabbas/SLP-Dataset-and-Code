@@ -103,7 +103,7 @@ For who already has the corresponding modality device for patient monitoring or 
  | HRpose:|  [LWIR](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_IR_u12_HRpose_exp.zip),   [depth](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_depth_u12_HRpose_exp.zip),  [PM](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_PM_u12_HRpose_exp.zip),  [PM+depth](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_PM-depth_u12_HRpose_exp.zip),  [PM+LWIR](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_PM-IR_u12_HRpose_exp.zip),  [LWIR+depth](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_IR-depth_u12_HRpose_exp.zip),  [PM+LWIR+depth](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_PM-IR-depth_u12_HRpose_exp.zip),
  | RESpose: | [LWIR](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_IR_u12_RESpose_exp.zip),  [depth](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_depth_u12_RESpose_exp.zip),  [PM](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_PM_u12_RESpose_exp.zip), 
  
- ## Citation 
+## Citation 
 @article{liu2019seeing,
   title={Seeing Under the Cover: A Physics Guided Learning Approach for In-Bed Pose Estimation},
   author={Liu, Shuangjun and Ostadabbas, Sarah},
