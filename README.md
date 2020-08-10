@@ -14,10 +14,12 @@ This repo provides the working examples to illustrate SLP usage in:
 2. Visualization to study the correspondence between modalities. 
 3. Working example for 2D human pose estimation. 
 
-by providing the code examples:  
+by providing the code examples:
+  
 1. `eg_SLP_interface.ipynb`: a tutorial of SLP dataset interface. 
 SLP provide flexible data interface to feed data with varying requirement including different modalities, alignment between modalities, different cover conditions and multi-modal data for collaboration with 2D pose labels. 
 Our SLP interface provides a basic tools for data feeding in potential future studies. 
+
 2. `eg_vis_SLP.ipynb`: a tutorial for LWIR-D-PM visualization. To understand how in-bed (at rest) human pose affect the underlying pressure is also an interesting topic to understand the causal relationship for bed-bound diseases. This tutorial shows how to visualize our dataset samples with an interactive camera control provided in jupyter notebook.   
     
 3. `s_pose2d.py`: a working example of 2D human pose estimation with multiple candidate models provided. 
