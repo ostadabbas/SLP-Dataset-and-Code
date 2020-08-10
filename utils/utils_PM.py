@@ -1,19 +1,13 @@
 # utils to read PM data
 import os
 import numpy as np
-import skimage
 from skimage import io
 from skimage import transform
-from skimage import color
 import math
 from math import cos, sin
 import matplotlib
 import matplotlib.pyplot as plt
-import ntpath
-import utils.utils as util
 import warnings
-import pytorch_ssim
-import cv2
 
 def getPth(dsFd=r'G:\My Drive\ACLab Shared GDrive\datasetPM\danaLab',idx_subj=1, modality='IR', cov='uncover', idx_frm=1):
     if modality in {'depth','IR','PM','RGB'}:   # simple name are image format
@@ -192,138 +186,6 @@ def getDiff_img(model, dataset, num_test, web_dir, if_saveImg=False, num_imgSv= 
     diff_bStk = np.concatenate(diff_li)
     real_bStk = np.concatenate(real_li)
     return diff_bStk, real_bStk
-
-def test(model, dataset, num_test, web_dir, if_saveImg=False, num_imgSv= 500, baseNm ='demo', R=1, efs_rt = 0.05, pcs_test = 0.05):
-    '''
-    similar to getDiffImg, direct return all metrics. Current metrics includes mse, mse_efs, psnr, false positive(fp), depends on clip method, R differs,
-    pcs_efs only calculates specified one pcs_test and pcs0.1 (fixed)
-    pcs_test point threshold will be determined by the R and pcs value together
-    diff and real still need to be saved for later PCS curve generation in varied resolutions like nPhy comparison.
-    pcs return specific one and also the
-    loop the function and save the diff and images to web_dir. Rename all the images to demo_{i}_[real\fake]_[A|B].png
-    :param model: the model to generate real image.
-    :param opt_test:
-    :param R: is the dynamic range, it is based on clipping method. We mainly use the 01 clip so set it to 1.
-    :param efs_rt: the effective area ratio, default 0.05
-    :param pcs_test: the pcs test point, default 0.05
-    :return: vertically stacked  difference between prediction and real and also the gt.  Result concatenated vertically,which is a very tall array.
-    all metrics are returned following diff and real image,in order
-     mse, mse_efs, psnr, psnr_efs, pcs_efs, pcs_efs01, ssim, fp
-    '''
-    if_verb = False
-    model.eval()
-    diff_li = []
-    real_li = []
-    fake_li = []
-    imgFd = os.path.join(web_dir, 'demoImgs')  # save to demo Images folder
-    if if_saveImg:
-        if not os.path.exists(imgFd):
-            os.mkdir(imgFd)
-    pth_realA = os.path.join(imgFd, baseNm + '{}_real_A.png')
-    pth_fakeB = os.path.join(imgFd, baseNm + '{}_fake_B{}.png')     # save multi-stage output  id___ n_stg
-    pth_realB = os.path.join(imgFd, baseNm + '{}_real_B.png')
-    cnt = 0
-    # accumulator
-    mse_sum = 0
-    mse_efs_sum = 0
-    psnr_sum = 0
-    psnr_efs_sum = 0
-    pcs_efs_sum = 0
-    pcs_efs01_sum = 0   # a default pcs0.1
-    ssim_sum = 0
-    fp_sum = 0          # false positive
-    # gen parameters
-
-    if R ==2:
-        thr = -1 + R*efs_rt  # the threshold
-    else:
-        thr = R * efs_rt
-
-    n_stg = model.opt.n_stg
-
-    for i, data in enumerate(dataset):
-        cnt += 1
-        if i == num_test:  # only apply our model to opt.num_test images.
-            break
-        model.set_input(data)  # unpack data from data loader
-        model.test()  # run forward and compute visual, only forward here
-        # img_path = model.get_image_paths()        # save the trouble just use demo
-        # short_path = ntpath.basename(img_path[0])
-        # name = os.path.splitext(short_path)[0]
-        if 0 == i % 100:
-            print('{} samples processed'.format(i))
-
-        real_A_im = ts2Img(model.real_A, R)        # numpy image 3 channel for saving, clipped
-        real_B_im = ts2Img(model.real_B, R)
-        # fake_B_im = ts2Img(model.fake_B, R)
-        if if_verb:
-            print('fake_B, min value is {}, max is {}'.format(fake_B_im.min(), fake_B_im.max()))
-
-        if if_saveImg and i < num_imgSv:  # save controlled number of images from test set
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                io.imsave(pth_realA.format(i), real_A_im)
-                io.imsave(pth_realB.format(i), real_B_im)
-                if hasattr(model, 'fake_Bs'):
-                    for j,fake_B in enumerate(model.fake_Bs):
-                        fake_B_im = ts2Img(fake_B, R)       # save multiple stage
-                        io.imsave(pth_fakeB.format(i, j), fake_B_im)
-                elif hasattr(model, 'fake_B'):      # for
-                    fake_B_im = ts2Img(model.fake_B, R)
-                    io.imsave(pth_fakeB.format(i,n_stg-1), fake_B_im)
-                else:
-                    print('no fake_B at all in this model')
-
-        real_B = model.real_B.cpu().numpy()
-        fake_B = model.fake_B.cpu().numpy()     # last stage one
-        # clip fake_B
-        if 1 == R:
-            fake_B = fake_B.clip(0,1)
-        elif 2==R:   # suppose to be clip11,  -1 to 1
-            fake_B = fake_B.clip(-1, 1)
-        else:       # suppose to be uint8 0 ~ 255
-            fake_B = fake_B.clip(0, 255)
-
-        diff_abs = np.abs(real_B - fake_B)
-        # metrics
-        mseT = (diff_abs**2).mean()
-        psnrT = 20*math.log10(R/mseT)   # R depends on clip
-        mse_efsT = (diff_abs[real_B>thr]**2).mean() #
-        psnr_efsT = 20*math.log10(R/mse_efsT)   # R depends on clip
-        n_efs = diff_abs[real_B>thr].size
-        pcs_efsT = (diff_abs[real_B>thr]<R*pcs_test).sum()/n_efs
-        pcs_efs01T = (diff_abs[real_B>thr]<R*0.1).sum()/n_efs
-        ssimT = pytorch_ssim.ssim(model.real_B, model.fake_B).item()    # get value
-        fpT = (fake_B[real_B<thr]>thr).sum()/real_B.size
-        # accumulation
-        mse_sum += mseT
-        mse_efs_sum += mse_efsT
-        psnr_sum += psnrT
-        psnr_efs_sum += psnr_efsT
-        pcs_efs_sum += pcs_efsT
-        pcs_efs01_sum += pcs_efs01T
-        ssim_sum += ssimT
-        fp_sum += fpT
-
-        diff_li.append(diff_abs)  # still channel first
-        real_li.append(real_B)
-        fake_li.append(fake_B)
-    # average
-    mse = mse_sum / cnt
-    mse_efs = mse_efs_sum / cnt
-    psnr = psnr_sum / cnt
-    psnr_efs = psnr_efs_sum /cnt
-    pcs_efs = pcs_efs_sum / cnt
-    pcs_efs01 = pcs_efs01_sum /cnt
-    ssim = ssim_sum / cnt
-    fp = fp_sum / cnt
-
-    # diff_dStk = np.dstack(diff_li)
-    # real_dStk = np.dstack(real_li)
-    diff_vStk = np.concatenate(diff_li) # default 1st dim so vertically
-    real_vStk = np.concatenate(real_li)
-    fake_vStk = np.concatenate(fake_li)
-    return fake_vStk, real_vStk, mse, mse_efs, psnr, psnr_efs, pcs_efs, pcs_efs01, ssim, fp
 
 def genPCS(diff_vStk, real_vStk, x, thresh=0.05):
     '''
