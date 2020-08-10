@@ -4,6 +4,7 @@ test basics
 
 import numpy as np
 import re
+import os
 
 # arr1 = np.array([[1,2], [3,4]])
 # arr2 = arr1[None, :, :]
@@ -70,3 +71,11 @@ import re
 # str1 = "{:>8}" + "\{:>{:d}\}".format(5) * 2
 # str1 = "{:>8}" + ("{:>" + "{:d}".format(3) +"}")* 2
 # print(str1)
+
+## os func
+# root, dirs, files = os.walk('test_fd')
+rst = os.walk('test_fd')
+print(rst)
+# print('root is', root)
+# print('dirs is', dirs)
+# print('files is', files)

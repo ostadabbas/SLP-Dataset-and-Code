@@ -3,7 +3,7 @@ import os
 import sys
 import ntpath
 import time
-from . import utils, html
+from . import utils, html, utils_PM
 from subprocess import Popen, PIPE
 # from scipy.misc import imresize       # absolete
 import os.path as osp
@@ -35,7 +35,7 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
     ims, txts, links = [], [], []
 
     for label, im_data in visuals.items():
-        im = utils.tensor2im(im_data)
+        im = utils_PM.ts2Img(im_data)
         image_name = '%s_%s.png' % (name, label)
         save_path = os.path.join(image_dir, image_name)
         h, w, _ = im.shape
@@ -141,7 +141,7 @@ class Visualizer():
                 idx = 0
                 for label, image in visuals.items():
                     if if_bchTs:
-                        image_numpy = utils.tensor2im(image, clipMod=self.clipMode)  # 1st in batch
+                        image_numpy = utils_PM.ts2Img(image)  # 1st in batch
                     else:
                         image_numpy = image  # directly use current
                     label_html_row += '<td>%s</td>' % label
@@ -170,7 +170,7 @@ class Visualizer():
                 try:
                     for label, image in visuals.items():
                         if if_bchTs:
-                            image_numpy = utils.tensor2im(image, clipMod=self.clipMode)
+                            image_numpy = utils_PM.ts2Img(image)
                         else:
                             image_numpy = image
                         self.vis.image(image_numpy.transpose([2, 0, 1]), opts=dict(title=label),
@@ -183,7 +183,7 @@ class Visualizer():
             self.saved = True
             # save images to the disk
             for label, image in visuals.items():
-                image_numpy = utils.tensor2im(image, clipMod=self.clipMode)
+                image_numpy = utils_PM.ts2Img(image)
                 img_path = os.path.join(self.img_dir, 'epoch%.3d_%s.png' % (epoch, label))
                 utils.save_image(image_numpy, img_path)
 
@@ -194,7 +194,7 @@ class Visualizer():
                 ims, txts, links = [], [], []
 
                 for label, image_numpy in visuals.items():
-                    image_numpy = utils.tensor2im(image, clipMod=self.clipMode)
+                    image_numpy = utils_PM.ts2Img(image)
                     img_path = 'epoch%.3d_%s.png' % (n, label)
                     ims.append(img_path)
                     txts.append(label)
@@ -213,7 +213,6 @@ class Visualizer():
         if not hasattr(self, 'plot_data'):
             self.plot_data = {'X': [], 'Y': [], 'legend': list(losses.keys())}  # legend from very beginning
         self.plot_data['X'].append(epoch + counter_ratio)
-        # check if input has same dim as previosu  othervise, fill the last value to it.
         if self.plot_data['Y']:  # if there is any data
             if len(self.plot_data['Y'][-1]) > len(losses):  # more losses before only decrese case, increase no done yet
                 appd_Y = self.plot_data['Y'][-1]
@@ -228,7 +227,6 @@ class Visualizer():
         self.plot_data['Y'].append(appd_Y)  # plotdata{Y: [ [l1] [l2];  ]  } each column
         try:
             if len(self.plot_data['legend']) < 2:
-                # X = np.expand_dims(np.array(self.plot_data['X']), axis=1)
                 X = np.array(self.plot_data['X'])
                 Y = np.array(self.plot_data['Y'])
                 if Y.size > 1:
@@ -263,7 +261,6 @@ class Visualizer():
         self.evals['Y'].append([evals[k] for k in self.evals['legend']])
         try:
             if len(self.evals['legend']) < 2:
-                # X = np.expand_dims(np.array(self.plot_data['X']), axis=1)
                 X = np.array(self.evals['X'])
                 Y = np.array(self.evals['Y'])
                 if Y.size > 1:

@@ -195,30 +195,6 @@ def add_pypath(path):
 		sys.path.insert(0, path)
 
 
-def tensor2im(input_image, imtype=np.uint8, clipMod='clip01'):
-	""""Converts a Tensor array into a numpy image array. for PM version 01 or 11 to 255
-    Parameters:
-        input_image (tensor) --  the input image tensor array
-        imtype (type)        --  the desired type of the converted numpy array
-    """
-	if not isinstance(input_image, np.ndarray):
-		if isinstance(input_image, torch.Tensor):  # get the data from a variable
-			image_tensor = input_image.data
-		else:
-			return input_image
-		image_numpy = image_tensor[0].cpu().float().numpy()  # convert it into a numpy array
-		if image_numpy.shape[0] == 1:  # grayscale to RGB
-			image_numpy = np.tile(image_numpy, (3, 1, 1))
-		if 'clip11' == clipMod:
-			image_numpy = (np.transpose(image_numpy,
-			                            (1, 2, 0)) + 1) / 2.0 * 255.0  # post-processing: tranpose and scaling
-		else:  # for clip 11 operation
-			image_numpy = (np.transpose(image_numpy, (1, 2, 0)) * 255.0)  # 01 scale directly
-	else:  # if it is a numpy array, do nothing
-		image_numpy = input_image
-	return image_numpy.astype(imtype)
-
-
 def diagnose_network(net, name='network'):
 	"""Calculate and print the mean of average absolute(gradients)
 
@@ -240,6 +216,7 @@ def diagnose_network(net, name='network'):
 def ts2cv2(img_ts, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)):
 	'''
 	recover the image from tensor to uint8 cv2 fromat with mean and std. Suppose original in 0~1 format. RGB-BGR, cyx -> yxc
+	this version is specific for the  H36M version of mean and std
 	:param img_ts:
 	:param mean:    inherently define the channel to get
 	:param std:
@@ -564,7 +541,7 @@ def trans_point2d(pt_2d, trans):
 
 def adj_bb(bb, rt_xy=1):
 	'''
-	according to ratio x, y, adjust the bb to size, keep longer dim unchanged
+	according to ratio x, y, adjust the bb with respect ration (rt), keep longer dim unchanged.
 	:param bb:
 	:param rt_xy:
 	:return:

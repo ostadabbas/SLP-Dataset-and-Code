@@ -31,8 +31,6 @@ def getImg_dsPM(dsFd=r'G:\My Drive\ACLab Shared GDrive\datasetPM\danaLab', idx_s
 	npy_nmSet = {'depthRaw', 'PMarray'}  # mainly use depth raw and PM array
 	if modality in npy_nmSet:  # npy format
 		nmFmt = '{:06}.npy'
-		# imgPth = os.path.join(dsFd, '{:05d}'.format(idx_subj), modality, cov, nmFmt.format(idx_frm))
-		# img = np.load(imgPth)
 		readFunc = np.load
 	else:
 		nmFmt = 'image_{:06d}.png'
@@ -154,10 +152,7 @@ class SLP_RD:  # slp reader
 		self.phase = phase
 		self.sz_pch = opts.sz_pch
 		self.fc_depth = opts.fc_depth
-		# mods_src = opt.mods_src
-		# mods_tar = opt.mods_tar
-		# self.mods_src = mods_src
-		# self.mods_tar = mods_tar
+
 		self.means={
 			'RGB': [0.3875689, 0.39156103, 0.37614644],
 			'depth': [0.7302197],
@@ -186,7 +181,6 @@ class SLP_RD:  # slp reader
 			idxs_subj = idxs_subj_all
 			self.idxs_subj= idxs_subj_all       # for simlab, gives all data as train also as samples can't be 0 in loader.
 
-		# self.dct_li_PTr = ut_p.genPTr_dict(idxs_subj_all, opt.mod_src + opt.mod_tar, dsFd)
 		# get all mdoe
 		self.dct_li_PTr = genPTr_dict(idxs_subj_all, ['RGB', 'IR', 'depth', 'PM'], dsFd)
 		phys_arr = np.load(path.join(dsFd, 'physiqueData.npy'))
@@ -202,18 +196,7 @@ class SLP_RD:  # slp reader
 		# right lower leg
 		self.phys_arr = phys_arr.astype(np.float)  # all list
 
-		# for caliPM_li    all list
-		# if not 'simLab' in dsFd:
-		# 	caliPM_li = []
-		# 	for i in idxs_subj_all:
-		# 		pth_cali = os.path.join(dsFd, '{:05d}'.format(i + 1), 'PMcali.npy')
-		# 		caliPM = np.load(pth_cali)
-		# 		caliPM_li.append(caliPM)
-		# 	self.li_caliPM = caliPM_li  # all cali files in order
-		# gen the descriptor list   [[ i_subj,   cov,  i_frm  ]]
-
 		pthDesc_li = []  # pth descriptor, make abs from 1,  ds_phase list
-
 		self.li_joints_gt_RGB = []  # for list generation
 		self.li_joints_gt_IR = []
 		## PM, depth homo estimated
@@ -231,15 +214,9 @@ class SLP_RD:  # slp reader
 		self.li_bb_sq_PM = []
 
 		self.li_caliPM = []
-		# for i in idx_subj_all:
 
 
-		# joints_gt = sio.loadmat(os.path.join(dsFd, '{:05d}'.format(idx_sub), joints_gt))['joints_gt'][:, :, idx_frm - 1]
-		# the PTr trans
-		# PTr_src2tar = np.dot(np.linalg.inv(PTr_tar), PTr_src)
-		# PTr_src2tar = PTr_src2tar / np.linalg.norm(PTr_src2tar)
 		for i in tqdm(idxs_subj_all, desc='initializing SLP'):
-			# joints_gt_RGB_t = sio.loadmat(os.path.join(dsFd, '{:05d}'.format(i+1), 'joints_gt_RGB.mat'))['joints_gt'].transpose([2,1,0])    # 3 x n_jt x n_frm -> n_jt x 3
 			joints_gt_RGB_t = sio.loadmat(os.path.join(dsFd, '{:05d}'.format(i + 1), 'joints_gt_RGB.mat'))[
 				'joints_gt']  # 3 x n_jt x n_frm -> n_jt x 3
 			# print('joints gt shape', joints_gt_RGB_t.shape)		# check-----------
@@ -258,7 +235,6 @@ class SLP_RD:  # slp reader
 			joints_gt_depth_t = np.array(list(
 				map(lambda x: cv2.perspectiveTransform(np.array([x]), PTr_RGB2depth)[0], joints_gt_RGB_t[:, :, :2])))
 			joints_gt_depth_t = np.concatenate([joints_gt_depth_t, joints_gt_RGB_t[:, :, 2, None]], axis=2)
-			# print('after concatenate',  joints_gt_depth_t.shape)	# check -----
 			joints_gt_PM_t = np.array(list(
 				map(lambda x: cv2.perspectiveTransform(np.array([x]), PTr_RGB)[0], joints_gt_RGB_t[:, :, :2])))
 			joints_gt_PM_t = np.concatenate([joints_gt_PM_t, joints_gt_RGB_t[:, :, 2, None]], axis=2)
@@ -304,7 +280,7 @@ class SLP_RD:  # slp reader
 			mod = 'PMarray' # for raw array reading
 		arr = getImg_dsPM(dsFd=self.dsFd, idx_subj=id_subj, modality=mod, cov=cov, idx_frm=id_frm)
 		if if_PMreal:
-			scal_caliPM = self.caliPM_li[id_subj - 1][cov_dict[cov], id_frm - 1]
+			scal_caliPM = self.li_caliPM[id_subj - 1][cov_dict[cov], id_frm - 1]
 			arr = arr * scal_caliPM # map to real
 
 		# get unified jt name, get rid of raw extenstion
@@ -359,7 +335,7 @@ class SLP_RD:  # slp reader
 	def bb2ori(self, jts, mod='depth'):
 		'''
 		recover all joints corresponding to idxs to original image space.
-		modification:, not flexible, get rid later
+		note:, not flexible, get rid later
 		3rd will
 		:param jts:
 		:param idxs:
@@ -371,12 +347,6 @@ class SLP_RD:  # slp reader
 		if 'IR' in mod:
 			mod = 'IR'
 		bbs_in = getattr(self, 'li_bb_{}'.format(mod))
-
-		## use exact index
-		# bbs = []  # flattened corresponding bbb
-		# for idx in idxs:
-		# 	n_subj, cov, n_frm = self.pthDesc_li[idx]
-		# 	bbs.append(bbs_in[n_subj-1][n_frm-1])
 
 		## all bbs
 		bbs = []  # flattened corresponding bbb
@@ -422,7 +392,6 @@ class SLP_RD:  # slp reader
 			bb = bb
 		else:
 			print('type {} not implemented yet'.format(id_bbType))
-		# print("call get_ptc!")
 		ptc = ut.get_ptc(arr, self.f_d, self.c_d, bb)
 		return ptc
 

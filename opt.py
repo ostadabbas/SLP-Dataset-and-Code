@@ -3,30 +3,21 @@ Parse arguments for training. act as config
 '''
 import os
 import os.path as osp
-import sys
 import configargparse
-import glob
-import json
 import utils.utils as ut
 
 
 def parseArgs(if_redef=True):
-	# if_redef, then reset all the defs
-	if_discovery = False
 	parser = configargparse .ArgumentParser(formatter_class=configargparse .ArgumentDefaultsHelpFormatter)
-	# add argument in
+
 	# -- env settings
 	parser.add_argument('--ds_fd', default='/scratch/liu.shu/datasets',
 		                    help='dataset directionry')  # for discovery
 	parser.add_argument('--output_dir', default='output', help='default output dirs')  # code local.
 	parser.add('--modelConf', default='config/HRpose.conf', is_config_file=True, help='Path to config file')
 	parser.add_argument('--ifb_debug', action='store_true')
-	# parser.add_argument('--suffix_ptn_train',
-	#                     default='{net_BB}_{lmd_D}D{n_layers_D}-{mode_D}{stgs_str}_gk{gauss_sigma}_yl-{if_ylB}_rtSYN{rt_SYN}_regZ{epoch_regZ}_fG-{if_fixG}_lr{lr}',
-	#                     help='the suffix pattern to form name')  ## --
 	parser.add_argument('--suffix_ptn_train', default='{model}')
-	parser.add_argument('--suffix_exp_train', default='exp', help='the manually given suffix for specific test')
-	# parser.add_argument('--suffix_ptn_test', default='{testset}_flip-{if_flipTest}_GtRt-{if_gtRtTest}_Btype-{bone_type}_avB-{if_aveBoneRec}_e{start_epoch}', help='the suffix pattern to form name')
+	parser.add_argument('--suffix_exp_train', default='ts1', help='the manually given suffix for specific test')
 	parser.add_argument('--suffix_ptn_test', default='{testset}-{SLP_set}',   #test should be final, get rid of others
 	                    help='the suffix pattern to form name. Change accordingly to your exp (such as ds and methods ablation)')
 	parser.add_argument('--suffix_exp_test', default='exp', help='mannualy added suffix for test result')
@@ -60,7 +51,6 @@ def parseArgs(if_redef=True):
 	parser.add_argument('--gauss_sigma', type=float, default=2.0, help='gaussian sigma to draw the heat map')
 	parser.add_argument('--if_scale_gs', default='n',
 	                    help='if up scale gaussian for higher level  features map, otherwise direct downsample. So higheest hm still hold small values')
-	parser.add_argument('--if_tightBB_ScanAva', default='y', help='if use tight bb for scanAva')
 	parser.add_argument('--sz_pch', nargs='+', default=(256, 256), type=int, help='input image size, model 288, pix2pix 256')
 	parser.add_argument('--end_epoch', default=100, type=int,
 	                    help='when reach this epoch, will stop. python index style, your model will be saved as epoch_tar-1, ori 25 ')
@@ -81,7 +71,6 @@ def parseArgs(if_redef=True):
 	# parser.add_argument('--if_coninue', default='y', help='if continue to train')
 	parser.add_argument('--start_epoch', default=-1, type=int,
 	                    help='where to being the epoch, 0 for scratch otherwise all continue')
-	parser.add_argument('--if_scraG', default='n', help='if backbone net from scratch')
 	parser.add_argument('--init_type', default='xavier', help='weight initialization mode, gain 0.02 fixed in')
 	parser.add_argument('--n_thread', default=10, type=int, help='how many threads')
 	parser.add_argument('--save_step', default=1, type=int, help='how many steps to save model')
@@ -126,13 +115,8 @@ def parseArgs(if_redef=True):
 	parser.add_argument('--svVis_step', default=1, type=int, help='step to save visuals')
 	parser.add_argument('--test_par', default='test',
 	                    help='the exact test portion, could be [testInLoop|test|train|all], can use the model to test on train set or test set')  # I just save default first
-	# parser.add_argument('--n_stack', default=1, help='number of stack for multi-stage pose models')       # handled in work
 
-	# hardwired parameters
-	# opts = parser.parse_args()  # all cmd infor
-	# print('begin parsing')
 	opts, _ = parser.parse_known_args()  # all cmd infor
-	# print('after parsing')
 
 	return opts
 
@@ -140,8 +124,7 @@ def aug_opts(opts):
 	# base on given opts, add necessary informations
 	opts.input_shape = opts.sz_pch[::-1]  # tuple size
 	# to update ---
-	# opts.output_shape = (opts.input_shape[0] // 4, opts.input_shape[1] // 4)
-	opts.depth_dim = opts.input_shape[0] // 4  # save as output shape, df 64.
+	opts.depth_dim = opts.input_shape[0] // 4  # save as output shape, df 64. similar to intergral
 	opts.bbox_3d_shape = (2000, 2000, 2000)  # depth, height, width,
 	opts.pixel_mean = (0.485, 0.456, 0.406)  # perhaps for RGB normalization  after divide by 255
 	opts.pixel_std = (0.229, 0.224, 0.225)  # for h36m version   remove later
@@ -165,14 +148,8 @@ def aug_opts(opts):
 	opts.input_nc = input_nc
 
 	opts.clipMode = '01'  # for save image purpose
-	# opts.adj = opts.adj_dict[opts.testset]  # choose the one
-
-	# Derived parameters, model, result part...
-	# form exp folder
 	if not os.path.isabs(opts.output_dir):
 		opts.output_dir = os.path.abspath(opts.output_dir)
-	# opts.ref_joints_num = len(opts.ref_joints_name)  # how image output
-	# opts.ref_evals_num = len(opts.ref_evals_name)  # could be smaller
 	nmT = '-'.join(opts.trainset)  # init
 	dct_opt = vars(opts)
 	dct_opt['stgs_str'] = ut.li2str(opts.stgs_D)
@@ -198,23 +175,6 @@ def aug_opts(opts):
 	yn_dict = {'y': True, 'n': False}
 	opts.if_flipTest = yn_dict[opts.yn_flipTest]
 	opts.use_gt_info = yn_dict[opts.if_gtRtTest]
-
-	# for start epoch   name  [epoch]_net_[netName].pth
-	# model_file_list = glob.glob(osp.join(opts.model_dir, '*.pth'))
-	# if osp.exists(opts.model_dir):
-	# 	model_file_list = [nm for nm in os.listdir(opts.model_dir) if nm.endswith('.pth')]
-	# 	if model_file_list:
-	# 		cur_epoch = max([ut.getNumInStr(fNm)[0] for fNm in model_file_list])
-	# 		start_epoch_sv = cur_epoch + 1
-	# 	else:
-	# 		start_epoch_sv = 0
-	# 	if opts.start_epoch == -1:
-	# 		opts.start_epoch = start_epoch_sv
-	# 	elif start_epoch_sv != opts.start_epoch and 'y' != opts.if_test_ckpt:
-	# 		print('not latest epoch, to avoid accidentally overiding, please clean up exp folder mannually ')
-	# 		exit(-1)
-	# else:  # no dir, first time
-	# 	opts.start_epoch = 0  #
 
 	# test name needs start_epoch
 	sfx_test = (opts.suffix_ptn_test.format(**vars(opts))) if opts.suffix_ptn_test != '' else ''
@@ -271,9 +231,3 @@ def set_env(opts):  # to be changed accordingly for rst fd
 	make_folder(opts.rst_dir)
 	make_folder(opts.web_dir)
 
-	# for continue, load previous setting to keep model consistency
-	# if opts.start_epoch == 0:   # only first time save options, to stand for how model is trained on
-	# 	if_sv = True
-	# else:
-	# 	if_sv = False
-	# print_options(opts, True)

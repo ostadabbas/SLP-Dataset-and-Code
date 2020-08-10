@@ -3,26 +3,17 @@
 '''
 
 from data.SLP_RD import SLP_RD
-# exec('from data.{} import SLP_RD'.format('SLP_RD'))
 from data.SLP_FD import SLP_FD
-import argparse
 import utils.vis as vis
 import utils.utils as ut
 import numpy as np
 import opt
 import cv2
-import skimage
-import model.A2J as model
-import model.anchor as anchor
-import math
 import torch
-from tqdm import tqdm
 import json
 from os import path
 import os
-from torch.nn.parallel.data_parallel import DataParallel
 from utils.logger import Colorlogger
-import pprint
 from utils.utils_tch import get_model_summary
 from core.loss import JointsMSELoss
 from torch.utils.data import DataLoader
@@ -38,7 +29,6 @@ if 'depth' in opts.mod_src[0]:  # the leading modalities, only depth use tight b
 else:
 	opts.if_bb = False  #
 exec('from model.{} import get_pose_net'.format(opts.model))  # pose net in
-# from model.HRpose import get_pose_net
 opts = opt.aug_opts(opts)  # add necesary opts parameters   to it
 # opt.print_options(opts)
 
@@ -117,18 +107,12 @@ def train(loader, ds_rd, model, criterion, optimizer, epoch, n_iter=-1, logger=N
 			pred2d_patch[:, :2] = pred[0] / opts.out_shp[0] * opts.sz_pch[1]
 			img_skel = vis.vis_keypoints(img_patch_vis, pred2d_patch, ds_rd.skels_idx)
 
-			# img_patch_vis = img_patch_vis.transpose([2, 0 , 1])
 			hm_gt = target[0].cpu().detach().numpy().sum(axis=0)    # HXW
 			hm_gt = ut.normImg(hm_gt)
-			# hm_gt = hm_gt.sum(axis=0)[..., None]   # 14 x 64 x 1
-			# print('hm_gt shape', hm_gt.shape)
 
 			hm_pred = output[0].detach().cpu().numpy().sum(axis=0)
 			hm_pred = ut.normImg(hm_pred)
-			# hm_pred = hm_pred.sum(axis=0)[..., None]  # channel first for visdom
-			# print('hm_pred shape', hm_pred.shape)       # couldn't broadcast 14x64  into one?
 			img_cb = vis.hconcat_resize([img_skel, hm_gt, hm_pred])
-			# vis_dict = {'hm_gt': hm_gt, 'hm_pred':hm_pred}
 			vis_dict = {'img_cb': img_cb}
 			visualizer.display_current_results(vis_dict, epoch, False)
 
@@ -149,8 +133,6 @@ def train(loader, ds_rd, model, criterion, optimizer, epoch, n_iter=-1, logger=N
 			logger.info(msg)
 			li_loss.append(losses.val)   # the current loss
 			li_acc.append(acc.val)
-			# save_debug_images(config, input, meta, target, pred * 4, output,
-			#                   prefix)
 
 	return {'losses':li_loss, 'accs':li_acc}
 
@@ -178,19 +160,8 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 	# switch to evaluate mode
 	model.eval()
 
-	# num_samples = len(val_dataset)
 	num_samples = ds_rd.n_smpl
 	n_jt = ds_rd.joint_num_ori
-	# all_preds = np.zeros(
-	# 	(num_samples, n_jt, 3),
-	# 	dtype=np.float32
-	# )
-
-	all_boxes = np.zeros((num_samples, 6))
-	image_path = []
-	filenames = []
-	imgnums = []
-	idx = 0
 
 	# to accum rst
 	preds_hm = []
@@ -198,7 +169,6 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 	li_joints_ori = []
 	li_joints_vis = []
 	li_l_std_ori = []
-	# print('flip pairs', ds_rd.flip_pairs) # correct
 	with torch.no_grad():
 		end = time.time()
 		for i, inp_dct in enumerate(loader):
@@ -218,22 +188,15 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 				output = outputs
 			output_ori = output.clone()     # original output of original image
 			if opts.if_flipTest:
-				# print('do flip test')
-				# print('input shape is', input.size())
-				# print('input shape', input.size())
 				input_flipped = input.flip(3).clone()       # flipped input
-				# print('input_flipped shape', input_flipped.size())
-				# input_flipped = input[...,::-1]     # traditional way
 				outputs_flipped = model(input_flipped)      # flipped output
 				if isinstance(outputs_flipped, list):
 					output_flipped = outputs_flipped[-1]
 				else:
 					output_flipped = outputs_flipped
 				output_flipped_ori = output_flipped.clone() # hm only head changed? not possible??
-				# print('output flipped shape', output_flipped.size())
 				output_flipped = flip_back(output_flipped.cpu().numpy(),
 				                           ds_rd.flip_pairs)
-				# print('after flip back', output_flipped.shape)
 				output_flipped = torch.from_numpy(output_flipped.copy()).cuda() # N x n_jt xh x w tch
 
 				# feature is not aligned, shift flipped heatmap for higher accuracy
@@ -256,7 +219,7 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 			                                 target.cpu().numpy())
 			acc.update(avg_acc, cnt)
 
-			# preds can be furhter refined with subpixel, but it is already good enough.
+			# preds can be furhter refined with subpixel trick, but it is already good enough.
 			# measure elapsed time
 			batch_time.update(time.time() - end)
 			end = time.time()
@@ -268,11 +231,8 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 			li_joints_vis.append(target_weight.cpu().numpy())
 			li_l_std_ori.append(l_std_ori.numpy())
 
-			# if sv_vis,  save for each epoch of 2d plot, with pseudo
-
 			if if_svVis and 0 == i % opts.svVis_step:
 				sv_dir = opts.vis_test_dir  # exp/vis/Human36M
-				# get channel number and mean , std,  recover func
 				# batch version
 				mod0 = opts.mod_src[0]
 				mean = ds_rd.means[mod0]
@@ -289,7 +249,6 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 				# draw and save  with index.
 
 				idx_test = i * opts.batch_size  # image index
-				# skels_idx = opts.ref_skels_idx
 				skels_idx = ds_rd.skels_idx
 				# get pred2d_patch
 				pred2d_patch = np.ones((n_jt, 3))  # 3rd for  vis
@@ -298,24 +257,15 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 				                  idx=idx_test)  # make sub dir if needed, recover to test set index by indexing.
 				# save the hm images. save flip test
 				hm_ori = ut.normImg(output_ori[0].cpu().numpy().sum(axis=0))    # rgb one
-				# subFd = mod0+'_hm'
-				# vis.save_img(hm_ori,sv_dir, idx=idx_test, sub=subFd)
 				hm_flip = ut.normImg(output_flipped[0].cpu().numpy().sum(axis=0))
-				# subFd = mod0+'_hmFlip'
-				# vis.save_img(hm_flip, sv_dir, idx_test, sub=subFd)
 				hm_flip_ori = ut.normImg(output_flipped_ori[0].cpu().numpy().sum(axis=0))
 				# subFd = mod0+'_hmFlip_ori'
 				# vis.save_img(hm_flip_ori, sv_dir, idx_test, sub=subFd)
 
-				# save images and flipped
-				# subFd = mod0+'_img'
-				# vis.save_img(img_patch_vis, sv_dir, idx_test, sub=subFd)
-				# subFd = mod0+'_imgFlip'
-				# vis.save_img(img_patch_vis_flipped, sv_dir, idx_test, sub=subFd)
 				# combined
-				img_cb = vis.hconcat_resize([img_patch_vis, hm_ori, img_patch_vis_flipped, hm_flip_ori])        # flipped hm
-				subFd = mod0+'_cbFlip'
-				vis.save_img(img_cb, sv_dir, idx_test, sub=subFd)
+				# img_cb = vis.hconcat_resize([img_patch_vis, hm_ori, img_patch_vis_flipped, hm_flip_ori])        # flipped hm
+				# subFd = mod0+'_cbFlip'
+				# vis.save_img(img_cb, sv_dir, idx_test, sub=subFd)
 
 
 			if i % opts.print_freq == 0:
@@ -334,16 +284,9 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 	l_std_ori_all = np.concatenate(li_l_std_ori, axis=0)
 
 	preds_ori = ut.warp_coord_to_original(preds_hm, bbs, sz_out=opts.out_shp)
-	# recover warp to ori,  rst: predict ori,  jt_or, l_std_ori_all,  dist_nmd, pck, jt_nms
-	# dist_norm = recDist (preds_ori, joints_ori,  li_l_std)
-	# print('preds_ori shape', preds_ori.shape)
-	# print('joints_vis shape', joints_vis)
 	err_nmd = ut.distNorm(preds_ori,  joints_ori, l_std_ori_all)
-	# print('err_nmd shape', err_nmd.shape) # 60 x 14
-	# get pck
 	ticks = np.linspace(0,0.5,11)   # 11 ticks
 	pck_all = ut.pck(err_nmd, joints_vis, ticks=ticks)
-	# print('pck all shape', pck_all.shape)       # 15 x11
 
 	# save to plain format for easy processing
 	rst = {
@@ -358,7 +301,6 @@ def validate(loader, ds_rd, model, criterion, n_iter=-1, logger=None, opts=None,
 
 
 def main():
-	# model , scheduler, optimizer, stand alone version.
 	# get logger
 	if_test = opts.if_test
 	if if_test:
@@ -366,7 +308,6 @@ def main():
 	else:
 		log_suffix = 'train'
 	logger = Colorlogger(opts.log_dir, '{}_logs.txt'.format(log_suffix))    # avoid overwritting, will append
-	# logger_debug = Colorlogger(opts.log_dir, 'debug_logs.txt')  # optional
 	opt.set_env(opts)
 	opt.print_options(opts, if_sv=True)
 	n_jt = SLP_RD.joint_num_ori     #
@@ -390,30 +331,6 @@ def main():
 	test_loader = DataLoader(dataset=SLP_fd_test, batch_size = opts.batch_size // len(opts.trainset),
 	                          shuffle=False, num_workers=opts.n_thread, pin_memory=opts.if_pinMem)
 
-	# ds checking
-	# loop through test loader error
-	# check reader first
-	# print(np.array(SLP_rd_test.li_bb_sq_PM).shape)      # 102 x 45 x 4 no problem
-	# loop loader check bb size
-
-	# check train feeder data
-	# idx = 30
-	# inp_dct = SLP_fd_test.jt_hm(idx)
-	# inp_dct = SLP_fd_train.jt_hm(idx)
-	# input = inp_dct['pch']
-	# target = inp_dct['hms']
-	# mod0 = opts.mod_src[0]
-	# mean = SLP_rd_train.means[mod0]
-	# std = SLP_rd_train.stds[mod0]
-	# img_patch_vis = ut.ts2cv2(input, mean, std)  # to CV BGR
-	# # pseudo change
-	# cm = getattr(cv2, SLP_rd_train.dct_clrMap[mod0])
-	# img_patch_vis = cv2.applyColorMap(img_patch_vis, cm)
-	# hm = ut.normImg(target.cpu().numpy().sum(axis=0))
-	# cv2.imwrite(path.join('rstT', str(idx) + 'hm_tch.jpg'), hm)
-	# cv2.imwrite(path.join('rstT', str(idx) + 'pch_tch.jpg'), img_patch_vis)
-
-
 	# for visualzier
 	if opts.display_id > 0:
 		visualizer = Visualizer(opts)  # only plot losses here, a loss log comes with it,
@@ -421,10 +338,8 @@ def main():
 		visualizer = None
 	# get optmizer
 	best_perf = 0.0
-	best_model = False
 	last_epoch = -1
 	optimizer = Adam(model.parameters(), lr=opts.lr)
-	# begin_epoch = cfg.TRAIN.BEGIN_EPOCH
 	checkpoint_file = os.path.join(
 		opts.model_dir, 'checkpoint.pth')
 	if 0 == opts.start_epoch or not path.exists(checkpoint_file):  #    from scratch
@@ -513,7 +428,7 @@ def main():
 		)
 		torch.save(model.module.state_dict(), final_model_state_file)
 
-	# sinlge test with loaded model, save the result
+	# single test with loaded model, save the result
 	logger.info('----run final test----')
 	rst_test = validate(
 		test_loader, SLP_rd_test, model, criterion,
@@ -527,22 +442,6 @@ def main():
 	pth_rst = path.join(opts.rst_dir, opts.nmTest + '.json')
 	with open(pth_rst, 'w') as f:
 		json.dump(rst_test, f)
-
-	# save rst
-	#if not if_test:
-		# for epoch
-		# |     trainLoop: return loss_li
-		# |--   for loop iter , output, loss, back ( can be put inmodel)
-		# }--   |   | train_log, time, error
-		# |     |   | if_display && total iter/update_html ==0 , show loss and demo image
-		# | model.eval()
-		# | --- test loop: return acc_li:
-		#       for n_iter_test ,  just give full test or testInLoop(optional) # give pck here
-		# |  acc_li+= acc_li_rt
-		# | model.train()
-		# | if 0 == epoch5save_step : save model
-		# | if disp  show pck_vis (dipaly is opt)
-	# for iter_test
 
 if __name__ == '__main__':
 	main()

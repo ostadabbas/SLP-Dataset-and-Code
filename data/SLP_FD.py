@@ -1,11 +1,7 @@
 '''
 Feeder of the SLP dataset.
 '''
-from torch.utils.data.dataset import Dataset
 import utils.utils as ut
-import torch
-import torchvision.transforms as transforms
-import numpy as np
 from data.SLP_RD import uni_mod
 from utils.utils_ds import *
 from os import path
@@ -148,13 +144,10 @@ class SLP_FD(Dataset):
 		return rst
 	def jt_hm(self, idx):
 		'''
-		get the img, hm(gaussian),  jts, l_std (head_size)
+		joint heatmap format feeder.  get the img, hm(gaussian),  jts, l_std (head_size)
 		:param index:
 		:return:
 		'''
-		# get first, mod, jt, then loop rest, stack , cropping gen hm
-		# get mean std array, toTensor transform
-		# vis outside, then 0 gaussian, no need to rule out the loss
 		mods = self.opts.mod_src
 		n_jt = self.ds.joint_num_ori    # use ori joint
 		sz_pch = self.opts.sz_pch
@@ -183,15 +176,13 @@ class SLP_FD(Dataset):
 		li_img.append(img)
 
 		for mod in mods[1:]:
-			# arr_IR2depth = SLP_rd.get_array_A2B(idx=idx, modA='IR', modB='depthRaw')
 			img = self.ds.get_array_A2B(idx=idx, modA=mod, modB=mod0)
 			li_mean += self.ds.means[mod]
 			li_std += self.ds.stds[mod]
 			if 'RGB' != mod:
 				img = img[...,None]     # add dim
 			li_img.append(img)
-		# print('image shape is', img.shape)
-		img_cb = np.concatenate(li_img, axis=-1)    # last dim
+		img_cb = np.concatenate(li_img, axis=-1)    # last dim, joint mods
 
 		# augmetation
 		# 2. get augmentation params
@@ -218,9 +209,7 @@ class SLP_FD(Dataset):
 		joints_pch = joints_ori.copy()      # j
 
 		if do_flip:
-			# print('before jt_pch', joints_pch)
 			joints_pch[:, 0] = img_width - joints_ori[:, 0] - 1
-			# print("after flip (no jt order)", joints_pch)
 			for pair in self.ds.flip_pairs:
 				joints_pch[pair[0], :], joints_pch[pair[1], :] = joints_pch[pair[1], :].copy(), joints_pch[pair[0], :].copy()       # maybe not copy issue
 		for i in range(len(joints_pch)):  #  jt trans
@@ -236,21 +225,13 @@ class SLP_FD(Dataset):
 					(joints_pch[i, 0] < self.opts.sz_pch[0]) & \
 					(joints_pch[i, 1] >= 0) & \
 					(joints_pch[i, 1] < self.opts.sz_pch[1])
-			)  # nice filtering  all in range
+			)  # nice filtering  all in range visibile
 
-		# make gaussian
-		# print('stride is', stride)
-		# print('joints_ori',joints_ori)
-		# print('joints_pch', joints_pch)
-		# print('joints_hm is', joints_hm)
 		hms, jt_wt = generate_target(joints_hm, joints_vis, sz_hm=out_shp[::-1])  # n_gt x H XW
 		idx_t, idx_h = ut.nameToIdx(('Thorax', 'Head'), ds.joints_name)
 		l_std_hm = np.linalg.norm(joints_hm[idx_h] - joints_hm[idx_t])
 		l_std_ori = np.linalg.norm(joints_ori[idx_h] - joints_ori[idx_t])
 
-		# input, hm,  joints_pch, joints_vis, l_std_hm,  joint_ori, l_std_ori
-		# to tensor normalize processing
-		# check imge
 		if_vis = False
 		if if_vis:
 			print('saving feeder data out to rstT')
@@ -266,17 +247,9 @@ class SLP_FD(Dataset):
 			hm_nmd = ut.normImg(hmImg)
 			# print('hms shape', hms.shape)
 			cv2.imwrite(path.join('rstT', str(idx) + '_hm.jpg'), hm_nmd)
-			# print('tmpimg, shape, type', tmpimg.shape, type(tmpimg))
 			tmpimg = ut.normImg(tmpimg)
-			# print('hm_nmd, shape, type', hm_nmd.shape, type(hm_nmd))
 			img_cb = vis.hconcat_resize([tmpimg, hm_nmd])
 			cv2.imwrite(path.join('rstT', str(idx) + '_cb.jpg'), img_cb)
-			# print('jt_wt is', jt_wt)
-
-		# print('joints_vis', joints_vis)
-		# print('l_std_hm', l_std_hm)
-		# print('l_std_ori', l_std_ori)
-
 
 		trans_tch = transforms.Compose([transforms.ToTensor(),
 			transforms.Normalize(mean=li_mean, std=li_std)]
@@ -296,19 +269,7 @@ class SLP_FD(Dataset):
 		return rst
 
 	def __getitem__(self, index):
-		# for the arr, jt version
-		# arr, jt = self.func_getData(index)
-		# transform is for  Image  to Tensor, will change order !! and range 255 - 1.0
-		# arr_tch = self.transform(arr)
-		# jt_tch = self.transform(jt)
-		# arr_tch = torch.from_numpy(arr.copy())  # the rotate make negative index along dim
-		# jt_tch = torch.from_numpy(jt.copy())
-		# if False:
-		# 	print('arr shape', arr.shape)
-		# 	print('arr tch shape', arr_tch.size())
-		# return arr_tch, jt_tch
-
-		# dict wrapper
+		# call the specific processing
 		rst = self.func_getData(index)
 		return rst
 
