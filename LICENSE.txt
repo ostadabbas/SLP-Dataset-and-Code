@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2019 Shuangjun Liu (Northeastern University,  ACLab)
+Copyright (c) 2019 Shuangjun Liu, Sarah Ostadabbas (Northeastern University,  ACLab)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
