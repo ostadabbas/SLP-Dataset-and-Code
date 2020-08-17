@@ -1,6 +1,7 @@
 #  SLP datasets 
-Simultaneously-collected multimodal Lying Pose (SLP) aims at providing a large scale widely covered raw material for in-bed human monitoring related studies. 
-Multiple modalities are collected simultaneously including RGB, LWIR, depth and pressure map (PM) which covers all the main stream modalities employed in relevant studies till now. Multiple cover conditions including uncover, cover 1 (thin cover) and cover2 (thick cover) are provided. For dataset detail, please refer to the SLP website(!!!) and SLP dataset README. 
+Simultaneously-collected multimodal Lying Pose (SLP) provide a large-scale highly diverse pose images for in-bed human pose/behavior monitoring studies. 
+Multiple modalities are collected simultaneously including RGB, long wave infrared (LWIR), depth and pressure map (PM), which covers any main stream modalities that have been employed in the relevant studies, so far. Multiple cover conditions including uncover, cover 1 (thin cover) and cover2 (thick cover) are also included. For dataset details and access information, please visit [SLP page at ACLab website](https://web.northeastern.edu/ostadabbas/2019/06/27/multimodal-in-bed-pose-estimation/). 
+
 
 ![00091-00001](imgs/00091_00001.gif)
 
@@ -16,11 +17,9 @@ This repo provides the working examples to illustrate SLP usage in:
 
 by providing the code examples:
   
-1. `eg_SLP_interface.ipynb`: a tutorial of SLP dataset interface. 
-SLP provide flexible data interface to feed data with varying requirement including different modalities, alignment between modalities, different cover conditions and multi-modal data for collaboration with 2D pose labels. 
-Our SLP interface provides a basic tools for data feeding in potential future studies. 
+1. `eg_SLP_interface.ipynb`: a tutorial on SLP dataset interface. SLP provide flexible data interface to feed data with varying requirements including different modalities, alignment between modalities, different cover conditions, and multimodal data for collaboration with 2D pose labels. Our SLP interface provides a basic tools for data feeding in potential future studies.  
 
-2. `eg_vis_SLP.ipynb`: a tutorial for LWIR-D-PM visualization. To understand how in-bed (at rest) human pose affect the underlying pressure is also an interesting topic to understand the causal relationship for bed-bound diseases. This tutorial shows how to visualize our dataset samples with an interactive camera control provided in jupyter notebook.   
+2. `eg_vis_SLP.ipynb`: a tutorial for LWIR-D-PM visualization. To understand how in-bed (i.e. at-rest) human pose affects the underlying pressure is also an interesting topic to explore the underlying causes associated with many bed-bound diseases. This tutorial shows how to visualize our dataset samples with an interactive camera control provided in jupyter notebook.
     
 3. `s_pose2d.py`: a working example of 2D human pose estimation with multiple candidate models provided. 
 
@@ -40,7 +39,7 @@ jsonpatch (visdom patch)
 dominate 
 ```
 ## Setup 
-1. Down SLP(give link here!!!) dataset, unzip.
+1. Down SLP dataset from [SLP page at ACLab website](https://web.northeastern.edu/ostadabbas/2019/06/27/multimodal-in-bed-pose-estimation/), unzip.
 2. point `opt.ds_fd` to the path where SLP is kept.
 3. point `opt.output_dir` to where you want to keep all results  (default:`./output`)
 
@@ -113,7 +112,12 @@ For who already has the corresponding modality device for patient monitoring or 
   year={2019}
 }
 
-!!! journal!!! 
+@article{liu2020simultaneously,
+  title={Simultaneously-Collected Multimodal Lying Pose Dataset: Towards In-Bed Human Pose Monitoring under Adverse Vision Conditions},
+  author={Liu, Shuangjun and Huang, Xiaofei and Fu, Nihang and Ostadabbas, Sarah},
+  journal={arXiv preprint arXiv},
+  year={2020}
+}
 
 ## Acknowledgement
 https://github.com/leoxiaobin/deep-high-resolution-net.pytorch
@@ -121,4 +125,9 @@ https://github.com/leoxiaobin/deep-high-resolution-net.pytorch
 https://github.com/Naman-ntc/Pytorch-Human-Pose-Estimation
 
 https://github.com/mks0601/3DMPPE_POSENET_RELEASE
+
+## License 
+* This code is for non-commercial purpose only. 
+
+* For other uses please contact [Augmented Cognition Lab (ACLab)](http://www.northeastern.edu/ostadabbas/) at Northeastern University. 
 
