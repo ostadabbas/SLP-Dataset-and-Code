@@ -126,6 +126,10 @@ https://github.com/Naman-ntc/Pytorch-Human-Pose-Estimation
 
 https://github.com/mks0601/3DMPPE_POSENET_RELEASE
 
+Graduate Student R&D Team: Shuangjun Liu (team lead), and Xiaofei Huang.
+
+Also, special thanks to the student volunteers ( Zhilan Li, Zhun Deng, Cheng Li, Zhongnan Su, Fei Xue, Fei Gao and Yu Yin) that helped us to collect and prepare the SLP dataset.
+
 ## License 
 * This code is for non-commercial purpose only. 
 
