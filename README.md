@@ -37,6 +37,10 @@ json
 plotly
 jsonpatch (visdom patch)
 dominate 
+tqdm
+configargparse
+yacs
+jupyter
 ```
 ## Setup 
 1. Down SLP dataset from [SLP page at ACLab website](https://web.northeastern.edu/ostadabbas/2019/06/27/multimodal-in-bed-pose-estimation/), unzip.
