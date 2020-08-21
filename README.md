@@ -21,7 +21,7 @@ by providing the code examples:
 
 2. `eg_vis_SLP.ipynb`: a tutorial for LWIR-D-PM visualization. To understand how in-bed (i.e. at-rest) human pose affects the underlying pressure is also an interesting topic to explore the underlying causes associated with many bed-bound diseases. This tutorial shows how to visualize our dataset samples with an interactive camera control provided in jupyter notebook.
     
-3. `s_pose2d.py`: a working example of 2D human pose estimation with multiple candidate models provided. 
+3. `main.py`: a working example of 2D human pose estimation with multiple candidate models provided. 
 
 ## dependencies 
 This work is developed with pytorch1.4.0, CUDA10.0. Some dependencies are for visualization purpose such as visdom and plotly. 
@@ -52,11 +52,11 @@ Options default can be changed in `opt.py` or through arguments `--arg_name`. Fo
 ## To use
 For 2D human pose estimation. For training: 
 
-`python s_pose2d.py --modelConf config/[modelName].conf`
+`python main.py --modelConf config/[modelName].conf`
 
 For testing, testing will be conduted automatically after training. 
 
-`python s_pose2d.py --modelConf config/[modelName].conf --if_test`
+`python main.py --modelConf config/[modelName].conf --if_test`
 
 For each model, we provides the training scripts in `script` which is compatible for sh or slurm. Please choose the env and node setting according to your local environment.  
 
