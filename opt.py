@@ -144,7 +144,6 @@ def aug_opts(opts):
 		opts.output_dir = os.path.abspath(opts.output_dir)
 	nmT = '-'.join(opts.trainset)  # init
 	dct_opt = vars(opts)
-	dct_opt['stgs_str'] = ut.li2str(opts.stgs_D)
 	# set tne naming needed attirbutes
 	suffix_train = (opts.suffix_ptn_train.format(
 		**vars(opts))) if opts.suffix_ptn_train != '' else ''  # std pattern
@@ -161,7 +160,6 @@ def aug_opts(opts):
 	if 'SLP' == opts.testset:
 		vis_sub = '_'.join(['SLP', opts.SLP_set])     # SLP add split to it
 	opts.vis_test_dir = osp.join(opts.vis_dir, vis_sub)  # specific test dataset
-	opts.n_stg_D = len(opts.stgs_D)
 	opts.batch_size = opts.batch_size_pGPU * opts.num_gpus  # the actual batch size
 
 	yn_dict = {'y': True, 'n': False}
