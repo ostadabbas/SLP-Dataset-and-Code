@@ -18,7 +18,7 @@ def parseArgs(if_redef=True):
 	parser.add_argument('--ifb_debug', action='store_true')
 	parser.add_argument('--suffix_ptn_train', default='{model}')
 	parser.add_argument('--suffix_exp_train', default='ts1', help='the manually given suffix for specific test')
-	parser.add_argument('--suffix_ptn_test', default='{testset}-{SLP_set}',   #test should be final, get rid of others
+	parser.add_argument('--suffix_ptn_test', default='{testset}-{SLP_set}',
 	                    help='the suffix pattern to form name. Change accordingly to your exp (such as ds and methods ablation)')
 	parser.add_argument('--suffix_exp_test', default='exp', help='mannualy added suffix for test result')
 
@@ -29,7 +29,7 @@ def parseArgs(if_redef=True):
 	                    help='source modality list, can accept multiple modalities typical model [RGB|IR|depthRaw| PMarray]')
 	parser.add_argument('--cov_li', nargs='+', default=['uncover', 'cover1', 'cover2'], help='the cover conditions')
 	parser.add_argument('--fc_depth', type=float, default=50., help='the depth factor to pixel level')
-	parser.add_argument('--if_bb', action='store_true', help='the depth factor to pixel level')
+	parser.add_argument('--if_bb', action='store_true', help='if use bounding box')
 	# -- model
 	parser.add_argument('--model', default='HRpose', help='model name [MPPE3D|A2J|HRpose|')   # the model to use
 	parser.add_argument('--n_layers_D', type=int, default=3,
@@ -43,14 +43,6 @@ def parseArgs(if_redef=True):
 	parser.add_argument('--trainset', nargs='+', default=['SLP'],
 	                    help='give the main ds here the iter number will follow this one')  # to mod later
 	# parser.add_argument('--if_D', default='y', help='if use discriminator, if single ds, then automatically set to n')
-	parser.add_argument('--gan_mode', default='lsgan', help='gan type [lsgan|vanilla]')
-	parser.add_argument('--lmd_D', default=0.02, type=float, help='weight for D loss, 0. for no D')
-	parser.add_argument('--mode_D', default='SA', help='the discriminator type, [SA|C], semantic aware or conventional')
-	parser.add_argument('--stgs_D', nargs='+', default=[1, 0, 0, 0], type=int,
-	                    help='indicator to show which stage is requested for assimilation,  last 4 layers in rest net ')
-	parser.add_argument('--gauss_sigma', type=float, default=2.0, help='gaussian sigma to draw the heat map')
-	parser.add_argument('--if_scale_gs', default='n',
-	                    help='if up scale gaussian for higher level  features map, otherwise direct downsample. So higheest hm still hold small values')
 	parser.add_argument('--sz_pch', nargs='+', default=(256, 256), type=int, help='input image size, model 288, pix2pix 256')
 	parser.add_argument('--end_epoch', default=100, type=int,
 	                    help='when reach this epoch, will stop. python index style, your model will be saved as epoch_tar-1, ori 25 ')
@@ -209,9 +201,7 @@ def print_options(opt, if_sv=False):
 			opt_file.write(message)
 			opt_file.write('\n')
 
-
 # opts = parseArgs()
-
 
 def set_env(opts):  # to be changed accordingly for rst fd
 	# set sys paths
