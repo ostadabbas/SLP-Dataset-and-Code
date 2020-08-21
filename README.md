@@ -1,6 +1,6 @@
 #  SLP datasets 
 Simultaneously-collected multimodal Lying Pose (SLP) provide a large-scale highly diverse pose images for in-bed human pose/behavior monitoring studies. 
-Multiple modalities are collected simultaneously including RGB, long wave infrared (LWIR), depth and pressure map (PM), which covers any main stream modalities that have been employed in the relevant studies, so far. Multiple cover conditions including uncover, cover 1 (thin cover) and cover2 (thick cover) are also included. For dataset details and access information, please visit [SLP page at ACLab website](https://web.northeastern.edu/ostadabbas/2019/06/27/multimodal-in-bed-pose-estimation/). 
+Multiple modalities are collected simultaneously including RGB, long wave infrared (LWIR), depth and pressure map (PM), which covers any main stream modalities that have been employed in the relevant studies, so far. Multiple cover conditions including uncover, cover 1 (thin cover) and cover2 (thick cover) are also included. For dataset details and access request, please visit [SLP page at ACLab website](https://web.northeastern.edu/ostadabbas/2019/06/27/multimodal-in-bed-pose-estimation/). 
 
 
 ![00091-00001](imgs/00091_00001.gif)
@@ -109,6 +109,13 @@ For who already has the corresponding modality device for patient monitoring or 
  | RESpose: | [LWIR](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_IR_u12_RESpose_exp.zip),  [depth](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_depth_u12_RESpose_exp.zip),  [PM](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_PM_u12_RESpose_exp.zip), 
  
 ## Citation 
+@article{liu20120simultaneously,
+  title={Simultaneously-Collected Multimodal Lying Pose Dataset: Towards In-Bed Human Pose Monitoring under Adverse Vision Conditions},
+  author={Liu, Shuangjun and  Huang, Xiaofei and Fu, Nihang and Li, Cheng and Su, Zhongnan and  Ostadabbas, Sarah},
+  journal={arXiv preprint arXiv:2008.08735},
+  year={2020}
+}
+
 @article{liu2019seeing,
   title={Seeing Under the Cover: A Physics Guided Learning Approach for In-Bed Pose Estimation},
   author={Liu, Shuangjun and Ostadabbas, Sarah},
@@ -116,12 +123,6 @@ For who already has the corresponding modality device for patient monitoring or 
   year={2019}
 }
 
-@article{liu2020simultaneously,
-  title={Simultaneously-Collected Multimodal Lying Pose Dataset: Towards In-Bed Human Pose Monitoring under Adverse Vision Conditions},
-  author={Liu, Shuangjun and Huang, Xiaofei and Fu, Nihang and Ostadabbas, Sarah},
-  journal={arXiv preprint arXiv},
-  year={2020}
-}
 
 ## Acknowledgement
 https://github.com/leoxiaobin/deep-high-resolution-net.pytorch
@@ -132,7 +133,7 @@ https://github.com/mks0601/3DMPPE_POSENET_RELEASE
 
 Graduate Student R&D Team: Shuangjun Liu (team lead), and Xiaofei Huang.
 
-Also, special thanks to the student volunteers ( Zhilan Li, Zhun Deng, Cheng Li, Zhongnan Su, Fei Xue, Fei Gao and Yu Yin) that helped us to collect and prepare the SLP dataset.
+Also, special thanks to the student volunteers (Zhilan Li, Zhun Deng, Cheng Li, Zhongnan Su, Fei Xue, Fei Gao, and Yu Yin) that helped us to collect and prepare the SLP dataset.
 
 ## License 
 * This code is for non-commercial purpose only. 
