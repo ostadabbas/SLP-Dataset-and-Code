@@ -136,7 +136,7 @@ Graduate Student R&D Team: Shuangjun Liu (team lead), and Xiaofei Huang.
 Also, special thanks to the student volunteers (Zhilan Li, Zhun Deng, Cheng Li, Zhongnan Su, Fei Xue, Fei Gao, and Yu Yin) that helped us to collect and prepare the SLP dataset.
 
 ## License 
-* This code is for non-commercial purpose only. 
+* By downloading or using the SLP Dataset, you are agreeing to the “Non-commercial Purposes” condition. “Non-commercial Purposes” means research, teaching, scientific publication and personal experimentation. Non-commercial Purposes include use of the Dataset to perform benchmarking for purposes of academic or applied research publication. Non-commercial Purposes does not include purposes primarily intended for or directed towards commercial advantage or monetary compensation, or purposes intended for or directed towards litigation, licensing, or enforcement, even in part. SLP dataset is provided as-is, is experimental in nature, and not intended for use by, with, or for the diagnosis of human subjects for incorporation into a product.
 
 * For other uses please contact [Augmented Cognition Lab (ACLab)](http://www.northeastern.edu/ostadabbas/) at Northeastern University. 
 
