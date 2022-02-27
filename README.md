@@ -109,11 +109,11 @@ For who already has the corresponding modality device for patient monitoring or 
  | RESpose: | [LWIR](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_IR_u12_RESpose_exp.zip),  [depth](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_depth_u12_RESpose_exp.zip),  [PM](http://www.coe.neu.edu/Research/AClab/SLP/models_2d/SLP_PM_u12_RESpose_exp.zip), 
  
 ## Citation 
-@article{liu20120simultaneously,
+@article{liu2022simultaneously,
   title={Simultaneously-Collected Multimodal Lying Pose Dataset: Towards In-Bed Human Pose Monitoring under Adverse Vision Conditions},
-  author={Liu, Shuangjun and  Huang, Xiaofei and Fu, Nihang and Li, Cheng and Su, Zhongnan and  Ostadabbas, Sarah},
-  journal={arXiv preprint arXiv:2008.08735},
-  year={2020}
+  author={Liu, Shuangjun and Huang, Xiaofei and Fu, Nihang and Li, Cheng and Su, Zhongnan and Ostadabbas, Sarah},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence (TPAMI)},
+  year={2022}
 }
 
 @article{liu2019seeing,
